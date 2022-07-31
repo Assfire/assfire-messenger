@@ -15,6 +15,8 @@ namespace assfire::messenger {
         Message() = default;
         Message(Headers headers, Payload payload) : _headers(std::move(headers)), _payload(std::move(payload)) {}
         explicit Message(Payload payload) : _payload(std::move(payload)) {}
+        template<ProtoMessage T>
+        explicit Message(const T msg) : _payload(pack(msg)) {};
         Message(const Message& rhs) = default;
         Message(Message&& rhs)      = default;
 
