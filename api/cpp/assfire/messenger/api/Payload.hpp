@@ -14,6 +14,9 @@ namespace assfire::messenger {
 
         { m.SerializeToArray((void *) 0, 0) }
         ->std::convertible_to<bool>;
+
+        { m.ParseFromArray((void *) 0, 0) }
+        ->std::convertible_to<bool>;
     };
 
     template<ProtoMessage T>
@@ -23,4 +26,12 @@ namespace assfire::messenger {
         msg.SerializeToArray(payload.data(), payload.size());
         return payload;
     };
+
+    template<ProtoMessage T>
+    T unpack(const Payload p) {
+        T result;
+        result.ParseFromArray(p.data(), p.size());
+        return result;
+    };
+
 } // namespace assfire::messenger
