@@ -1,6 +1,7 @@
 #pragma once
 
-#include <Message.hpp>
+#include "Message.hpp"
+
 #include <functional>
 
 namespace assfire::messenger {
