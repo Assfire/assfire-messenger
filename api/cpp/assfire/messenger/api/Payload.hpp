@@ -7,7 +7,8 @@ namespace assfire::messenger {
     class Payload {
       public:
         Payload() = default;
-        Payload(uint8_t* buf, size_t size) : _data(buf, size) {}
+        Payload(uint8_t* buf, std::size_t size) : _data(buf, size) {}
+        Payload(uint8_t* buf, std::size_t size) : _data(buf, size) {}
         Payload(const Payload& rhs) = default;
         Payload(Payload&& rhs)      = default;
 
@@ -21,6 +22,14 @@ namespace assfire::messenger {
         }
 
         const uint8_t* data() const {
+            return _data.data();
+        }
+
+        void reserve(std::size_t size) {
+            _data.reserve(size);
+        }
+
+        uint8_t* data() {
             return _data.data();
         }
 
