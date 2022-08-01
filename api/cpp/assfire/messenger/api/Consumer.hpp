@@ -9,6 +9,6 @@ namespace assfire::messenger {
       public:
         virtual ~Consumer()                           = default;
         virtual std::optional<Message> next_message() = 0;
-        virtual void interrupt()                      = 0;
+        virtual void stop()                           = 0;
     };
 } // namespace assfire::messenger
