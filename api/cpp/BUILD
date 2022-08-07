@@ -13,7 +13,6 @@ cc_library(
         "assfire/messenger/api/Messenger.hpp",
         "assfire/messenger/api/Options.hpp",
     ],
-    include_prefix = "assfire/messenger/api",
-    strip_include_prefix = "assfire/messenger/api",
+    includes = ["."],
     visibility = ["//visibility:public"]
 )
