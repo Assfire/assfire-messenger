@@ -4,6 +4,7 @@
 #include "Payload.hpp"
 
 #include <cstdint>
+#include <limits>
 #include <string>
 #include <unordered_map>
 
@@ -11,12 +12,21 @@ namespace assfire::messenger {
     class Message {
       public:
         using Headers = std::unordered_map<Header::Id, Header>;
+        using Id      = std::uint64_t;
+
+        constexpr static Id UNSPECIFIED_ID = std::numeric_limits<Id>::max();
 
         Message() = default;
-        Message(Headers headers, Payload payload) : _headers(std::move(headers)), _payload(std::move(payload)) {}
-        explicit Message(Payload payload) : _payload(std::move(payload)) {}
+        Message(Headers headers, Payload payload) : _id(UNSPECIFIED_ID), _headers(std::move(headers)), _payload(std::move(payload)) {}
+        Message(Id id, Headers headers, Payload payload) : _id(id), _headers(std::move(headers)), _payload(std::move(payload)) {}
+        explicit Message(Payload payload) : _id(UNSPECIFIED_ID), _payload(std::move(payload)) {}
+        explicit Message(Id id, Payload payload) : _id(id), _payload(std::move(payload)) {}
         template<ProtoMessage T>
-        explicit Message(const T msg) : _payload(pack(msg)) {};
+        explicit Message(const T msg) : _id(UNSPECIFIED_ID),
+                                        _payload(pack(msg)) {};
+        template<ProtoMessage T>
+        explicit Message(Id id, const T msg) : _id(id),
+                                               _payload(pack(msg)) {};
         Message(const Message& rhs) = default;
         Message(Message&& rhs)      = default;
 
@@ -33,6 +43,10 @@ namespace assfire::messenger {
             _payload = std::move(payload);
         }
 
+        void set_id(Id id) {
+            _id = id;
+        }
+
         const Headers& headers() const {
             return _headers;
         }
@@ -41,7 +55,12 @@ namespace assfire::messenger {
             return _payload;
         }
 
+        Id id() const {
+            return _id;
+        }
+
       private:
+        Id _id;
         std::unordered_map<Header::Id, Header> _headers;
         Payload _payload;
     };

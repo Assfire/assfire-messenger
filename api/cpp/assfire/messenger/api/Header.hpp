@@ -18,11 +18,11 @@ namespace assfire::messenger {
 
         bool operator==(const Header& rhs) const = default;
 
-        const Id& id() {
+        const Id& id() const {
             return _id;
         }
 
-        const Value& value() {
+        const Value& value() const {
             return _value;
         }
 

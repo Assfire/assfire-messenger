@@ -1,8 +1,12 @@
 cc_library(
     name = "assfire_messenger_cc_impl_kafka",
-    srcs = ["assfire/messenger/impl/kafka/KafkaMessenger.cpp"],
+    srcs = [
+        "assfire/messenger/impl/kafka/KafkaConsumer.cpp",
+        "assfire/messenger/impl/kafka/KafkaMessenger.cpp",
+    ],
     hdrs = [
         "assfire/messenger/impl/kafka/KafkaConsumer.hpp",
+        "assfire/messenger/impl/kafka/KafkaMessageHeaders.hpp",
         "assfire/messenger/impl/kafka/KafkaMessenger.hpp",
     ],
     deps = [
