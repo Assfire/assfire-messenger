@@ -1,5 +1,6 @@
 #pragma once
 
+#include "KafkaConsumerOptions.hpp"
 #include "assfire/messenger/api/Consumer.hpp"
 
 #include <atomic>
@@ -16,7 +17,7 @@ namespace assfire::messenger {
       public:
         ~KafkaConsumer();
 
-        KafkaConsumer(std::shared_ptr<kafka::clients::KafkaConsumer> consumer);
+        KafkaConsumer(std::shared_ptr<kafka::clients::KafkaConsumer> consumer, KafkaConsumerOptions options);
         virtual Message poll() override;
         virtual Message poll(std::chrono::milliseconds timeout) override;
         virtual void ack(const Message& msg) override;
@@ -24,6 +25,8 @@ namespace assfire::messenger {
         virtual void resume() override;
         virtual void stop() override;
         virtual void drain() override;
+
+        const KafkaConsumerOptions& options();
 
       private:
         void on_message_received();
@@ -39,5 +42,7 @@ namespace assfire::messenger {
         std::future<void> _work_ftr;
         tbb::concurrent_queue<Message> _messages;
         std::atomic_bool _interrupted;
+        std::atomic_bool _started;
+        KafkaConsumerOptions _consumer_options;
     };
 } // namespace assfire::messenger

@@ -3,6 +3,5 @@
 #include "Header.hpp"
 #include "Message.hpp"
 #include "Messenger.hpp"
-#include "Options.hpp"
 #include "Payload.hpp"
 #include "Publisher.hpp"

@@ -10,7 +10,6 @@ cc_library(
         "assfire/messenger/api/Header.hpp",
         "assfire/messenger/api/Message.hpp",
         "assfire/messenger/api/Messenger.hpp",
-        "assfire/messenger/api/Options.hpp",
         "assfire/messenger/api/Payload.hpp",
         "assfire/messenger/api/Publisher.hpp",
     ],

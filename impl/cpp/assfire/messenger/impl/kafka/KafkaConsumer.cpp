@@ -9,7 +9,11 @@ namespace assfire::messenger {
         stop();
     }
 
-    KafkaConsumer::KafkaConsumer(std::shared_ptr<kafka::clients::KafkaConsumer> consumer) : _consumer(consumer) {}
+    KafkaConsumer::KafkaConsumer(std::shared_ptr<kafka::clients::KafkaConsumer> consumer, KafkaConsumerOptions options)
+        : _consumer(consumer),
+          _interrupted(false),
+          _started(false),
+          _consumer_options(options) {}
 
     Message KafkaConsumer::poll() {
         while (true) {
@@ -53,6 +57,10 @@ namespace assfire::messenger {
         _drain_cv.wait(lck, [&] { return _messages.empty(); });
     }
 
+    const KafkaConsumerOptions& KafkaConsumer::options() {
+        return _consumer_options;
+    }
+
     void KafkaConsumer::consume_loop() {
         while (!_interrupted) {
             auto records = _consumer->poll(std::chrono::seconds(5));
@@ -72,6 +80,12 @@ namespace assfire::messenger {
     }
 
     void KafkaConsumer::wait_for_new_messages(std::chrono::milliseconds timeout) {
+        if (!_started) {
+            bool expected_started = false;
+            if (_started.compare_exchange_strong(expected_started, true)) {
+                _work_ftr = std::async(std::launch::async, std::bind(&KafkaConsumer::consume_loop, this));
+            }
+        }
         std::unique_lock<std::mutex> lck(_poll_mtx);
         if (!_poll_cv.wait_for(lck, timeout, [&] { return !_messages.empty(); })) { throw TimeoutError(); }
     }

@@ -1,25 +1,26 @@
 #pragma once
 
-#include "KafkaChannelOptions.hpp"
+#include "KafkaConsumer.hpp"
+#include "KafkaConsumerOptions.hpp"
+#include "assfire/logger/api/Logger.hpp"
 #include "assfire/messenger/api/Messenger.hpp"
 
 #include <memory>
-#include <string>
 #include <oneapi/tbb/concurrent_hash_map.h>
+#include <string>
 
 namespace assfire::messenger {
     class KafkaMessenger : public Messenger {
       public:
         KafkaMessenger();
 
-        virtual std::shared_ptr<Publisher> create_publisher(const ChannelId& channel_id,
-                                                            const PublisherOptions& options = PublisherOptions()) override;
-        virtual std::shared_ptr<Consumer> create_consumer(const ChannelId& channel_id, const ConsumerOptions& options = ConsumerOptions()) override;
+        virtual std::shared_ptr<Publisher> get_publisher(const ChannelId& channel_id) override;
+        virtual std::shared_ptr<Consumer> get_consumer(const ChannelId& channel_id) override;
 
-        void declare_channel(ChannelId channel_id, KafkaChannelOptions options);
+        std::shared_ptr<KafkaConsumer> create_consumer(ChannelId channel_id, KafkaConsumerOptions options);
 
       private:
-        tbb::concurrent_hash_map<ChannelId, KafkaChannelOptions> _declared_channels;
-        tbb::concurrent_hash_map<ChannelId, std::shared_ptr<Consumer>> _consumers;
+        tbb::concurrent_hash_map<ChannelId, std::shared_ptr<KafkaConsumer>> _consumers;
+        std::shared_ptr<logger::Logger> _logger;
     };
 } // namespace assfire::messenger
