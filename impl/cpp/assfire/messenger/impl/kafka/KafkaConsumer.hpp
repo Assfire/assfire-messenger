@@ -9,7 +9,7 @@
 #include <kafka/KafkaConsumer.h>
 #include <memory>
 #include <mutex>
-#include <queue>
+#include <oneapi/tbb/concurrent_queue.h>
 
 namespace assfire::messenger {
     class KafkaConsumer : public Consumer {
@@ -20,6 +20,8 @@ namespace assfire::messenger {
         virtual Message poll() override;
         virtual Message poll(std::chrono::milliseconds timeout) override;
         virtual void ack(const Message& msg) override;
+        virtual void pause() override;
+        virtual void resume() override;
         virtual void stop() override;
         virtual void drain() override;
 
@@ -30,12 +32,12 @@ namespace assfire::messenger {
         void consume_loop();
 
         std::shared_ptr<kafka::clients::KafkaConsumer> _consumer;
+        std::mutex _poll_mtx;
+        std::mutex _drain_mtx;
         std::condition_variable _poll_cv;
         std::condition_variable _drain_cv;
         std::future<void> _work_ftr;
-        std::queue<Message> _messages;
-        std::mutex _mtx;
+        tbb::concurrent_queue<Message> _messages;
         std::atomic_bool _interrupted;
-        kafka::TopicPartition _partition;
     };
 } // namespace assfire::messenger

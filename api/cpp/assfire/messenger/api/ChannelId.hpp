@@ -5,12 +5,14 @@
 namespace assfire::messenger {
     class ChannelId {
       public:
-        using TopicId = std::string;
-
         ChannelId() = default;
-        ChannelId(TopicId topic_id) : _topic_id(std::move(topic_id)) {}
+        ChannelId(std::string name) : _name(std::move(name)) {}
         ChannelId(const ChannelId& rhs) = default;
         ChannelId(ChannelId&& rhs)      = default;
+
+        const std::string& name() const {
+            return _name;
+        }
 
         ChannelId& operator=(const ChannelId& rhs) = default;
         ChannelId& operator=(ChannelId&& rhs) = default;
@@ -18,6 +20,13 @@ namespace assfire::messenger {
         bool operator==(const ChannelId& rhs) const = default;
 
       private:
-        TopicId _topic_id;
+        std::string _name;
     };
 } // namespace assfire::messenger
+
+template<>
+struct std::hash<assfire::messenger::ChannelId> {
+    std::size_t operator()(const assfire::messenger::ChannelId& channel_id) const {
+        return std::hash<std::string> {}(channel_id.name());
+    }
+};

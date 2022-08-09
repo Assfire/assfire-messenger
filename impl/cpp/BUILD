@@ -5,6 +5,7 @@ cc_library(
         "assfire/messenger/impl/kafka/KafkaMessenger.cpp",
     ],
     hdrs = [
+        "assfire/messenger/impl/kafka/KafkaChannelOptions.hpp",
         "assfire/messenger/impl/kafka/KafkaConsumer.hpp",
         "assfire/messenger/impl/kafka/KafkaMessageHeaders.hpp",
         "assfire/messenger/impl/kafka/KafkaMessenger.hpp",
@@ -13,5 +14,6 @@ cc_library(
         "//api/cpp:assfire_messenger_cc_api",
         "@com_github_edenhill_librdkafka//:librdkafka",
         "@com_github_morganstanley_modern_cpp_kafka//:modern-cpp-kafka-api",
+        "@com_github_oneapi_src_onetbb//:tbb",
     ],
 )

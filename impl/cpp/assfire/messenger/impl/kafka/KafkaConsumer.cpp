@@ -24,9 +24,8 @@ namespace assfire::messenger {
     Message KafkaConsumer::poll(std::chrono::milliseconds timeout) {
         wait_for_new_messages(timeout);
 
-        std::lock_guard<std::mutex> guard(_mtx);
-        Message msg = _messages.front();
-        _messages.pop();
+        Message msg;
+        if (!_messages.try_pop(msg)) { throw EndOfStreamError(); }
         on_message_consumed();
         return msg;
     }
@@ -37,20 +36,26 @@ namespace assfire::messenger {
                                 msg.id()}});
     }
 
+    void KafkaConsumer::pause() {
+        _consumer->pause();
+    }
+
+    void KafkaConsumer::resume() {
+        _consumer->resume();
+    }
+
     void KafkaConsumer::stop() {
         _interrupted = true;
     }
 
     void KafkaConsumer::drain() {
-        std::unique_lock<std::mutex> lck(_mtx);
+        std::unique_lock<std::mutex> lck(_drain_mtx);
         _drain_cv.wait(lck, [&] { return _messages.empty(); });
-        lck.unlock();
     }
 
     void KafkaConsumer::consume_loop() {
         while (!_interrupted) {
             auto records = _consumer->poll(std::chrono::seconds(5));
-            std::lock_guard guard(_mtx);
             for (const auto& record : records) {
                 if (record.value().size() == 0) { continue; }
                 if (!record.error()) {
@@ -67,12 +72,8 @@ namespace assfire::messenger {
     }
 
     void KafkaConsumer::wait_for_new_messages(std::chrono::milliseconds timeout) {
-        std::unique_lock<std::mutex> lck(_mtx);
-        if (!_poll_cv.wait_for(lck, timeout, [&] { return !_messages.empty(); })) {
-            lck.unlock();
-            throw TimeoutError();
-        }
-        lck.unlock();
+        std::unique_lock<std::mutex> lck(_poll_mtx);
+        if (!_poll_cv.wait_for(lck, timeout, [&] { return !_messages.empty(); })) { throw TimeoutError(); }
     }
 
     void KafkaConsumer::on_message_received() {
