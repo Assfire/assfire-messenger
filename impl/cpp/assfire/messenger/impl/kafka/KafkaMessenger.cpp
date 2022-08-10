@@ -29,26 +29,32 @@ namespace assfire::messenger {
     }
 
     std::shared_ptr<KafkaConsumer> KafkaMessenger::create_consumer(ChannelId channel_id, KafkaConsumerOptions options) {
-        _logger->info("Creating kafka consumer channel {} (options: {})", channel_id.name(), options.to_string());
+        try {
+            _logger->info("Creating kafka consumer channel {} (options: {})", channel_id.name(), options.to_string());
 
-        kafka::Properties props;
+            kafka::clients::consumer::Config props = options.to_kafka_config();
 
-        tbb::concurrent_hash_map<ChannelId, std::shared_ptr<KafkaConsumer>>::accessor write_accessor;
-        bool is_new = _consumers.insert(write_accessor, channel_id);
+            tbb::concurrent_hash_map<ChannelId, std::shared_ptr<KafkaConsumer>>::accessor write_accessor;
+            bool is_new = _consumers.insert(write_accessor, channel_id);
 
-        if (is_new) {
-            write_accessor->second = std::shared_ptr<KafkaConsumer>(
-                new KafkaConsumer(std::make_shared<kafka::clients::KafkaConsumer>(props), std::move(options)), [&channel_id, this](auto consumer) {
-                    _consumers.erase(channel_id);
-                    delete consumer;
-                });
-        } else {
-            if (write_accessor->second->options() != options) {
-                _logger->error("Trying to redeclare channel {} with different options - this is not allowed", channel_id.name());
-                throw ChannelRedeclarationAttemptError(channel_id);
+            if (is_new) {
+                write_accessor->second =
+                    std::shared_ptr<KafkaConsumer>(new KafkaConsumer(std::make_shared<kafka::clients::KafkaConsumer>(props), std::move(options)),
+                                                   [&channel_id, this](auto consumer) {
+                                                       _consumers.erase(channel_id);
+                                                       delete consumer;
+                                                   });
+            } else {
+                if (write_accessor->second->options() != options) {
+                    _logger->error("Trying to redeclare channel {} with different options - this is not allowed", channel_id.name());
+                    throw ChannelRedeclarationAttemptError(channel_id);
+                }
             }
+            return write_accessor->second;
+        } catch (const std::exception& e) {
+            _logger->error("Failed to create kafka consumer channel {}: {}", channel_id.name(), e.what());
+            throw;
         }
-        return write_accessor->second;
     }
 
 } // namespace assfire::messenger
