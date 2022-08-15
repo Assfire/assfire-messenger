@@ -19,6 +19,8 @@ namespace assfire::messenger {
         ->std::convertible_to<bool>;
     };
 
+    Payload pack(const std::string &msg);
+
     template<ProtoMessage T>
     Payload pack(const T &msg) {
         messenger::Payload payload;

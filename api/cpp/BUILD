@@ -2,6 +2,7 @@ cc_library(
     name = "assfire_messenger_cc_api",
     srcs = [
         "assfire/messenger/api/Api.cpp",
+        "assfire/messenger/api/Payload.cpp",
     ],
     hdrs = [
         "assfire/messenger/api/ChannelId.hpp",

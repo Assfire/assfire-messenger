@@ -15,6 +15,8 @@ cc_library(
         "assfire/messenger/impl/kafka/KafkaPublisher.hpp",
         "assfire/messenger/impl/kafka/KafkaPublisherOptions.hpp",
     ],
+    includes = ["."],
+    visibility = ["//visibility:public"],
     deps = [
         "//api/cpp:assfire_messenger_cc_api",
         "@com_github_assfire_assfire_logger//api/cpp:assfire_logger_cc_api",
