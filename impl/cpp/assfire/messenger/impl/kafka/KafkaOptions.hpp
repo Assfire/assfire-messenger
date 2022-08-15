@@ -3,6 +3,7 @@
 #include <absl/strings/str_join.h>
 #include <functional>
 #include <kafka/ConsumerConfig.h>
+#include <kafka/ProducerConfig.h>
 #include <kafka/Properties.h>
 #include <optional>
 #include <string>
@@ -266,6 +267,103 @@ namespace assfire::messenger {
                       default: throw std::invalid_argument("Unexpected partition assignment strategy enum value");
                       }
                   }) {};
+        };
+
+        class Acks : public ConstrainedIntProperty<int32_t, -1, 1000> {
+          public:
+            Acks(std::optional<int32_t> value = std::nullopt)
+                : ConstrainedIntProperty<int32_t, -1, 1000>(kafka::clients::producer::Config::ACKS, value) {};
+        };
+
+        class QueueBufferingMaxMessages : public ConstrainedIntProperty<int32_t, 1, 10000000> {
+          public:
+            QueueBufferingMaxMessages(std::optional<int32_t> value = std::nullopt)
+                : ConstrainedIntProperty<int32_t, 1, 10000000>(kafka::clients::producer::Config::QUEUE_BUFFERING_MAX_MESSAGES, value) {};
+        };
+
+        class QueueBufferingMaxKbytes : public ConstrainedIntProperty<int32_t, 1, 2147483647> {
+          public:
+            QueueBufferingMaxKbytes(std::optional<int32_t> value = std::nullopt)
+                : ConstrainedIntProperty<int32_t, 1, 2147483647>(kafka::clients::producer::Config::QUEUE_BUFFERING_MAX_KBYTES, value) {};
+        };
+
+        class LingerMs : public ConstrainedIntProperty<int32_t, 0, 900000> {
+          public:
+            LingerMs(std::optional<int32_t> value = std::nullopt)
+                : ConstrainedIntProperty<int32_t, 0, 900000>(kafka::clients::producer::Config::LINGER_MS, value) {};
+        };
+
+        class BatchNumMessages : public ConstrainedIntProperty<int32_t, 1, 1000000> {
+          public:
+            BatchNumMessages(std::optional<int32_t> value = std::nullopt)
+                : ConstrainedIntProperty<int32_t, 1, 1000000>(kafka::clients::producer::Config::BATCH_NUM_MESSAGES, value) {};
+        };
+
+        class BatchSize : public ConstrainedIntProperty<int32_t, 1, 2147483647> {
+          public:
+            BatchSize(std::optional<int32_t> value = std::nullopt)
+                : ConstrainedIntProperty<int32_t, 1, 2147483647>(kafka::clients::producer::Config::BATCH_SIZE, value) {};
+        };
+
+        class MessageMaxBytes : public ConstrainedIntProperty<int32_t, 1000, 1000000000> {
+          public:
+            MessageMaxBytes(std::optional<int32_t> value = std::nullopt)
+                : ConstrainedIntProperty<int32_t, 1000, 1000000000>(kafka::clients::producer::Config::MESSAGE_MAX_BYTES, value) {};
+        };
+
+        class MessageTimeoutMs : public ConstrainedIntProperty<int32_t, 0, 2147483647> {
+          public:
+            MessageTimeoutMs(std::optional<int32_t> value = std::nullopt)
+                : ConstrainedIntProperty<int32_t, 0, 2147483647>(kafka::clients::producer::Config::MESSAGE_TIMEOUT_MS, value) {};
+        };
+
+        class RequestTimeoutMs : public ConstrainedIntProperty<int32_t, 1, 900000> {
+          public:
+            RequestTimeoutMs(std::optional<int32_t> value = std::nullopt)
+                : ConstrainedIntProperty<int32_t, 1, 900000>(kafka::clients::producer::Config::REQUEST_TIMEOUT_MS, value) {};
+        };
+
+        enum class PartitionerEnum { RANDOM, CONSISTENT, CONSISTENT_RANDOM, MURMUR2, MURMUR2_RANDOM, FNV1A, FNV1A_RANDOM };
+
+        class Partitioner : public Property<PartitionerEnum> {
+          public:
+            Partitioner(std::optional<PartitionerEnum> value = std::nullopt)
+                : Property(kafka::clients::producer::Config::PARTITIONER, value, [](const auto& v) {
+                      switch (v) {
+                      case PartitionerEnum::RANDOM: return "random";
+                      case PartitionerEnum::CONSISTENT: return "consistent";
+                      case PartitionerEnum::CONSISTENT_RANDOM: return "consistent_random";
+                      case PartitionerEnum::MURMUR2: return "murmur2";
+                      case PartitionerEnum::MURMUR2_RANDOM: return "murmur2_random";
+                      case PartitionerEnum::FNV1A: return "fnv1a";
+                      case PartitionerEnum::FNV1A_RANDOM: return "fnv1a_random";
+                      default: throw std::invalid_argument("Unexpected partitioner enum value");
+                      }
+                  }) {};
+        };
+
+        class MaxInFlight : public ConstrainedIntProperty<int32_t, 1, 1000000> {
+          public:
+            MaxInFlight(std::optional<int32_t> value = std::nullopt)
+                : ConstrainedIntProperty<int32_t, 1, 1000000>(kafka::clients::producer::Config::MAX_IN_FLIGHT, value) {};
+        };
+
+        class EnableIdempotence : public BoolProperty {
+          public:
+            EnableIdempotence(std::optional<bool> value = std::nullopt)
+                : BoolProperty(kafka::clients::producer::Config::ENABLE_IDEMPOTENCE, value) {};
+        };
+
+        class TransactionalId : public StringProperty {
+          public:
+            TransactionalId(std::optional<std::string> value = std::nullopt)
+                : StringProperty(kafka::clients::producer::Config::TRANSACTIONAL_ID, std::move(value)) {};
+        };
+
+        class TransactionTimeoutMs : public ConstrainedIntProperty<int32_t, 1000, 2147483647> {
+          public:
+            TransactionTimeoutMs(std::optional<int32_t> value = std::nullopt)
+                : ConstrainedIntProperty<int32_t, 1000, 2147483647>(kafka::clients::producer::Config::TRANSACTION_TIMEOUT_MS, value) {};
         };
 
     }; // namespace KafkaOptions

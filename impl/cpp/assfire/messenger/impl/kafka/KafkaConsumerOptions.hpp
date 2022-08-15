@@ -11,8 +11,6 @@
 namespace assfire::messenger {
     class KafkaConsumerOptions {
       public:
-        enum class IsolationLevel { READ_UNCOMMITTED, READ_COMMITTED };
-
         KafkaConsumerOptions()                                = default;
         KafkaConsumerOptions(const KafkaConsumerOptions &rhs) = default;
         KafkaConsumerOptions(KafkaConsumerOptions &&rhs)      = default;

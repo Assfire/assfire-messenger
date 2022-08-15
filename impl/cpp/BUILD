@@ -3,6 +3,7 @@ cc_library(
     srcs = [
         "assfire/messenger/impl/kafka/KafkaConsumer.cpp",
         "assfire/messenger/impl/kafka/KafkaMessenger.cpp",
+        "assfire/messenger/impl/kafka/KafkaPublisher.cpp",
     ],
     hdrs = [
         "assfire/messenger/impl/kafka/KafkaConsumer.hpp",
@@ -11,6 +12,8 @@ cc_library(
         "assfire/messenger/impl/kafka/KafkaMessageHeaders.hpp",
         "assfire/messenger/impl/kafka/KafkaMessenger.hpp",
         "assfire/messenger/impl/kafka/KafkaOptions.hpp",
+        "assfire/messenger/impl/kafka/KafkaPublisher.hpp",
+        "assfire/messenger/impl/kafka/KafkaPublisherOptions.hpp",
     ],
     deps = [
         "//api/cpp:assfire_messenger_cc_api",
