@@ -1,36 +1,34 @@
 #include "assfire/messenger/impl/kafka/KafkaMessenger.hpp"
 
+#include <absl/flags/flag.h>
+#include <absl/flags/parse.h>
 #include <iostream>
 #include <string>
 
 using namespace assfire::messenger;
 
-int main() {
-    int id = 0;
+ABSL_FLAG(std::vector<std::string>, brokers, std::vector<std::string> {"localhost"}, "Comma-separated list of bootstrap servers");
+ABSL_FLAG(std::string, message, "default_message", "Message to send to broker");
+ABSL_FLAG(std::string, client_id, "client", "Client id to use for passing message");
+ABSL_FLAG(std::string, topic, "pub1", "Topic to publish message to");
+
+int main(int argc, char** argv) {
+    absl::ParseCommandLine(argc, argv);
 
     assfire::messenger::KafkaMessenger messenger;
 
     KafkaPublisherOptions options;
-    options.set_bootstrap_servers(std::vector<std::string> {"localhost"});
-    options.set_client_id("client");
+    options.set_bootstrap_servers(absl::GetFlag(FLAGS_brokers));
+    options.set_client_id(absl::GetFlag(FLAGS_client_id));
 
-    messenger.create_publisher(ChannelId("pub1"), options);
+    messenger.create_publisher(ChannelId(absl::GetFlag(FLAGS_topic)), options);
 
-    while (true) {
-        std::cout << ">" << std::endl;
-        std::string line;
-        std::getline(std::cin, line);
+    auto publisher = messenger.get_publisher(ChannelId(absl::GetFlag(FLAGS_topic)));
 
-        if (line == "q") break;
+    Message msg;
+    msg.set_payload(pack(absl::GetFlag(FLAGS_message)));
 
-        auto publisher = messenger.get_publisher(ChannelId("pub1"));
-
-        Message msg;
-        msg.set_id(id++);
-        msg.set_payload(pack(line));
-
-        publisher->publish(msg);
-    }
+    publisher->publish(msg);
 
     return 0;
 }
