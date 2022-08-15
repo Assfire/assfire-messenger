@@ -9,11 +9,9 @@ filegroup(
 
 cmake(
     name = "librdkafka",
+    generate_args = ["-DRDKAFKA_BUILD_STATIC=True"],
     includes = ["include"],
     lib_source = ":librdkafka_srcs",
-    out_shared_libs = [
-        "librdkafka.so",
-        "librdkafka++.so",
-    ],
     visibility = ["//visibility:public"],
+    deps = ["@com_github_madler_zlib//:zlib"],
 )

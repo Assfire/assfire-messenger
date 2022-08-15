@@ -5,6 +5,7 @@
 
 #include <cstdint>
 #include <limits>
+#include <optional>
 #include <string>
 #include <unordered_map>
 
@@ -45,6 +46,15 @@ namespace assfire::messenger {
 
         void set_id(Id id) {
             _id = id;
+        }
+
+        std::optional<std::string> header(const Header::Id& id) const {
+            auto iter = _headers.find(id);
+            if (iter == _headers.end()) {
+                return std::nullopt;
+            } else {
+                return iter->second.value();
+            }
         }
 
         const Headers& headers() const {

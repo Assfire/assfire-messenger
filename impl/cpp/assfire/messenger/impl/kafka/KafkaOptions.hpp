@@ -63,7 +63,7 @@ namespace assfire::messenger {
             }
 
             std::string to_string() const {
-                return name() + " = " + format();
+                return _value ? name() + " = " + format() : "";
             }
 
             const std::string& name() const {

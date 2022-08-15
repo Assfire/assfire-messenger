@@ -26,3 +26,13 @@ cc_library(
         "@com_google_absl//absl/strings",
     ],
 )
+
+cc_test(
+    name = "assfire_messenger_cc_impl_kafka_test",
+    srcs = ["assfire/messenger/impl/kafka/test/KafkaMessenger_Test.cpp"],
+    deps = [
+        ":assfire_messenger_cc_impl_kafka",
+        "@com_github_assfire_assfire_logger//impl/cpp:assfire_logger_cc_impl_spdlog",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

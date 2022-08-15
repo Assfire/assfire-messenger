@@ -45,12 +45,14 @@ namespace assfire::messenger {
             bool is_new = _consumers.insert(write_accessor, channel_id);
 
             if (is_new) {
-                write_accessor->second =
-                    std::shared_ptr<KafkaConsumer>(new KafkaConsumer(std::make_shared<kafka::clients::KafkaConsumer>(props), std::move(options)),
-                                                   [&channel_id, this](auto consumer) {
-                                                       _consumers.erase(channel_id);
-                                                       delete consumer;
-                                                   });
+                auto kafka_consumer = std::make_shared<kafka::clients::KafkaConsumer>(props);
+                kafka_consumer->subscribe({options.topic_name()});
+
+                write_accessor->second = std::shared_ptr<KafkaConsumer>(new KafkaConsumer(std::move(kafka_consumer), std::move(options)),
+                                                                        [&channel_id, this](auto consumer) {
+                                                                            _consumers.erase(channel_id);
+                                                                            delete consumer;
+                                                                        });
             } else {
                 if (write_accessor->second->options() != options) {
                     _logger->error("Trying to redeclare consumer channel {} with different options - this is not allowed", channel_id.name());

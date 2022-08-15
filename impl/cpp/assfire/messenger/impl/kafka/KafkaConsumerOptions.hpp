@@ -35,6 +35,7 @@ namespace assfire::messenger {
             tokens.push_back(_isolation_level.to_string());
             tokens.push_back(_partition_assignment_strategy.to_string());
             tokens.push_back(_security_protocol.to_string());
+            std::erase_if(tokens, [](const auto &s) { return s.empty(); });
             return "{" + absl::StrJoin(tokens, ",") + "}";
         }
 

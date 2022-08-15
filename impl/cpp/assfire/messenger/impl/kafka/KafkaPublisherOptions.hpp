@@ -4,6 +4,7 @@
 #include "kafka/ConsumerConfig.h"
 
 #include <absl/strings/str_join.h>
+#include <algorithm>
 #include <cstdint>
 #include <string>
 #include <unordered_set>
@@ -39,6 +40,7 @@ namespace assfire::messenger {
             tokens.push_back(_transactional_id.to_string());
             tokens.push_back(_transaction_timeout_ms.to_string());
             tokens.push_back(_security_protocol.to_string());
+            std::erase_if(tokens, [](const auto &s) { return s.empty(); });
             return "{" + absl::StrJoin(tokens, ",") + "}";
         }
 
