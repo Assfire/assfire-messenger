@@ -1,6 +1,7 @@
 #include "KafkaConsumer.hpp"
 
 #include "KafkaMessageHeaders.hpp"
+#include "assfire/logger/api/LoggerProvider.hpp"
 #include "assfire/messenger/api/Exceptions.hpp"
 
 namespace assfire::messenger {
@@ -13,7 +14,8 @@ namespace assfire::messenger {
         : _consumer(consumer),
           _interrupted(false),
           _started(false),
-          _consumer_options(options) {}
+          _consumer_options(options),
+          _logger(logger::LoggerProvider::get("assfire.messenger.KafkaConsumer")) {}
 
     Message KafkaConsumer::poll() {
         while (true) {
@@ -35,9 +37,15 @@ namespace assfire::messenger {
     }
 
     void KafkaConsumer::ack(const Message& msg) {
-        _consumer->commitSync({{kafka::TopicPartition(msg.headers().at(KAFKA_HEADER_TOPIC_NAME).value(),
-                                                      std::stol(msg.headers().at(KAFKA_HEADER_TOPIC_PARTITION).value())),
-                                msg.id()}});
+        try {
+            _consumer->commitSync(
+                {{kafka::TopicPartition(*msg.header(KAFKA_HEADER_TOPIC_NAME), decode_partition_header(*msg.header(KAFKA_HEADER_TOPIC_PARTITION))),
+                  decode_offset_header(*msg.header(KAFKA_HEADER_OFFSET))}});
+        } catch (const std::exception& e) {
+            std::string headers_string = msg.headers_to_string();
+            _logger->error("Failed to ack message with headers {}: {}", headers_string, e.what());
+            std::throw_with_nested(AckFailedError("Failed to ack message: " + headers_string));
+        }
     }
 
     void KafkaConsumer::pause() {
@@ -67,9 +75,10 @@ namespace assfire::messenger {
             for (const auto& record : records) {
                 if (record.value().size() == 0) { continue; }
                 if (!record.error()) {
-                    Message msg(record.offset(), Payload(static_cast<const uint8_t*>(record.value().data()), record.value().size()));
+                    Message msg(Payload(static_cast<const uint8_t*>(record.value().data()), record.value().size()));
+                    msg.add_header(Header(KAFKA_HEADER_OFFSET, encode_offset_header(record.offset())));
                     msg.add_header(Header(KAFKA_HEADER_TOPIC_NAME, record.topic()));
-                    msg.add_header(Header(KAFKA_HEADER_TOPIC_PARTITION, std::to_string(record.partition())));
+                    msg.add_header(Header(KAFKA_HEADER_TOPIC_PARTITION, encode_partition_header(record.partition())));
                     _messages.emplace(std::move(msg));
                 } else {
                     // Log message

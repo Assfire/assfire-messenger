@@ -22,8 +22,28 @@ namespace assfire::messenger {
         TimeoutError() : ConsumerError("Timeout on waiting for messages") {};
         TimeoutError(const std::string& what) : ConsumerError(what) {}
     };
+
+    class AckFailedError : public ConsumerError {
+      public:
+        AckFailedError() : ConsumerError("Failed to ack message") {};
+        AckFailedError(const std::string& what) : ConsumerError(what) {}
+    };
+
     class ConsumerConstructionError : public ConsumerError {
       public:
-        ConsumerConstructionError(const std::string& what) : ConsumerError(what) {}
+        ConsumerConstructionError() : ConsumerError("Failed to create consumer") {};
+        ConsumerConstructionError(const std::string& what) : ConsumerError(what) {};
     };
+
+    class PublisherError : public std::runtime_error {
+      public:
+        PublisherError(const std::string& what) : std::runtime_error(what) {}
+    };
+
+    class PublisherConstructionError : public PublisherError {
+      public:
+        PublisherConstructionError() : PublisherError("Failed to create publisher") {};
+        PublisherConstructionError(const std::string& what) : PublisherError(what) {};
+    };
+
 } // namespace assfire::messenger

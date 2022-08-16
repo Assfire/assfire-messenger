@@ -21,6 +21,9 @@ namespace assfire::messenger {
         std::shared_ptr<KafkaConsumer> create_consumer(ChannelId channel_id, KafkaConsumerOptions options);
         std::shared_ptr<KafkaPublisher> create_publisher(ChannelId channel_id, KafkaPublisherOptions options);
 
+        void destroy_consumer(ChannelId channel_id);
+        void destroy_publisher(ChannelId channel_id);
+
       private:
         tbb::concurrent_hash_map<ChannelId, std::shared_ptr<KafkaConsumer>> _consumers;
         tbb::concurrent_hash_map<ChannelId, std::shared_ptr<KafkaPublisher>> _publishers;

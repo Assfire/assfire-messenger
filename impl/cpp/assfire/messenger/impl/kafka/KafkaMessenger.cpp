@@ -3,6 +3,7 @@
 #include "KafkaConsumer.hpp"
 #include "KafkaExceptions.hpp"
 #include "assfire/logger/api/LoggerProvider.hpp"
+#include "assfire/messenger/api/Exceptions.hpp"
 #include "kafka/KafkaConsumer.h"
 
 #include <memory>
@@ -48,21 +49,20 @@ namespace assfire::messenger {
                 auto kafka_consumer = std::make_shared<kafka::clients::KafkaConsumer>(props);
                 kafka_consumer->subscribe({options.topic_name()});
 
-                write_accessor->second = std::shared_ptr<KafkaConsumer>(new KafkaConsumer(std::move(kafka_consumer), std::move(options)),
-                                                                        [&channel_id, this](auto consumer) {
-                                                                            _consumers.erase(channel_id);
-                                                                            delete consumer;
-                                                                        });
+                write_accessor->second = std::make_shared<KafkaConsumer>(std::move(kafka_consumer), std::move(options));
             } else {
                 if (write_accessor->second->options() != options) {
-                    _logger->error("Trying to redeclare consumer channel {} with different options - this is not allowed", channel_id.name());
+                    _logger->error("Trying to redeclare existing consumer channel {} (options = {}) with different options {} - this is not allowed",
+                                   write_accessor->second->options().to_string(), options.to_string(), channel_id.name());
                     throw ChannelRedeclarationAttemptError(channel_id);
+                } else {
+                    _logger->info("Found existing consumer for channel {}. It will be reused", channel_id.name());
                 }
             }
             return write_accessor->second;
-        } catch (const std::exception& e) {
+        } catch (const ChannelRedeclarationAttemptError& e) { throw e; } catch (const std::exception& e) {
             _logger->error("Failed to create kafka consumer channel {}: {}", channel_id.name(), e.what());
-            throw;
+            std::throw_with_nested(ConsumerConstructionError("Failed to create consumer for channel " + channel_id.name()));
         }
     }
 
@@ -76,23 +76,29 @@ namespace assfire::messenger {
             bool is_new = _publishers.insert(write_accessor, channel_id);
 
             if (is_new) {
-                write_accessor->second =
-                    std::shared_ptr<KafkaPublisher>(new KafkaPublisher(std::make_shared<kafka::clients::KafkaProducer>(props), std::move(options)),
-                                                    [&channel_id, this](auto publisher) {
-                                                        _publishers.erase(channel_id);
-                                                        delete publisher;
-                                                    });
+                write_accessor->second = std::make_shared<KafkaPublisher>(std::make_shared<kafka::clients::KafkaProducer>(props), std::move(options));
             } else {
                 if (write_accessor->second->options() != options) {
-                    _logger->error("Trying to redeclare publisher channel {} with different options - this is not allowed", channel_id.name());
+                    _logger->error("Trying to redeclare existing publisher channel {} (options = {}) with different options {} - this is not allowed",
+                                   write_accessor->second->options().to_string(), options.to_string(), channel_id.name());
                     throw ChannelRedeclarationAttemptError(channel_id);
+                } else {
+                    _logger->info("Found existing publisher for channel {}. It will be reused", channel_id.name());
                 }
             }
             return write_accessor->second;
-        } catch (const std::exception& e) {
+        } catch (const ChannelRedeclarationAttemptError& e) { throw e; } catch (const std::exception& e) {
             _logger->error("Failed to create kafka publisher channel {}: {}", channel_id.name(), e.what());
-            throw;
+            std::throw_with_nested(PublisherConstructionError("Failed to create publisher for channel " + channel_id.name()));
         }
+    }
+
+    void KafkaMessenger::destroy_consumer(ChannelId channel_id) {
+        _consumers.erase(channel_id);
+    }
+
+    void KafkaMessenger::destroy_publisher(ChannelId channel_id) {
+        _publishers.erase(channel_id);
     }
 
 } // namespace assfire::messenger

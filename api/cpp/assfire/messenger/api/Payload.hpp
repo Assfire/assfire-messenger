@@ -36,4 +36,6 @@ namespace assfire::messenger {
         return result;
     };
 
+    std::string_view to_string_view(const Payload& payload);
+
 } // namespace assfire::messenger

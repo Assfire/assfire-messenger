@@ -2,6 +2,7 @@ cc_library(
     name = "assfire_messenger_cc_impl_kafka",
     srcs = [
         "assfire/messenger/impl/kafka/KafkaConsumer.cpp",
+        "assfire/messenger/impl/kafka/KafkaMessageHeaders.cpp",
         "assfire/messenger/impl/kafka/KafkaMessenger.cpp",
         "assfire/messenger/impl/kafka/KafkaPublisher.cpp",
     ],
@@ -29,7 +30,10 @@ cc_library(
 
 cc_test(
     name = "assfire_messenger_cc_impl_kafka_test",
-    srcs = ["assfire/messenger/impl/kafka/test/KafkaMessenger_Test.cpp"],
+    srcs = [
+        "assfire/messenger/impl/kafka/test/KafkaMessageHeaders_Test.cpp",
+        "assfire/messenger/impl/kafka/test/KafkaMessenger_Test.cpp",
+    ],
     deps = [
         ":assfire_messenger_cc_impl_kafka",
         "@com_github_assfire_assfire_logger//impl/cpp:assfire_logger_cc_impl_spdlog",

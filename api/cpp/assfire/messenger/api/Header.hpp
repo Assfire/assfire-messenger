@@ -26,6 +26,10 @@ namespace assfire::messenger {
             return _value;
         }
 
+        std::string to_string() const {
+            return _id + "=" + _value;
+        }
+
       private:
         Id _id;
         Value _value;

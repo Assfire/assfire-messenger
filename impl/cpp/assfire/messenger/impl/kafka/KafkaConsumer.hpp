@@ -2,6 +2,7 @@
 
 #include "KafkaConsumerOptions.hpp"
 #include "assfire/messenger/api/Consumer.hpp"
+#include "assfire/logger/api/Logger.hpp"
 
 #include <atomic>
 #include <condition_variable>
@@ -44,5 +45,6 @@ namespace assfire::messenger {
         std::atomic_bool _interrupted;
         std::atomic_bool _started;
         KafkaConsumerOptions _consumer_options;
+        std::shared_ptr<logger::Logger> _logger;
     };
 } // namespace assfire::messenger

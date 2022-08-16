@@ -3,6 +3,7 @@
 #include "Header.hpp"
 #include "Payload.hpp"
 
+#include <absl/strings/str_join.h>
 #include <cstdint>
 #include <limits>
 #include <optional>
@@ -13,21 +14,12 @@ namespace assfire::messenger {
     class Message {
       public:
         using Headers = std::unordered_map<Header::Id, Header>;
-        using Id      = std::uint64_t;
-
-        constexpr static Id UNSPECIFIED_ID = std::numeric_limits<Id>::max();
 
         Message() = default;
-        Message(Headers headers, Payload payload) : _id(UNSPECIFIED_ID), _headers(std::move(headers)), _payload(std::move(payload)) {}
-        Message(Id id, Headers headers, Payload payload) : _id(id), _headers(std::move(headers)), _payload(std::move(payload)) {}
-        explicit Message(Payload payload) : _id(UNSPECIFIED_ID), _payload(std::move(payload)) {}
-        explicit Message(Id id, Payload payload) : _id(id), _payload(std::move(payload)) {}
+        Message(Headers headers, Payload payload) : _headers(std::move(headers)), _payload(std::move(payload)) {}
+        explicit Message(Payload payload) : _payload(std::move(payload)) {}
         template<ProtoMessage T>
-        explicit Message(const T msg) : _id(UNSPECIFIED_ID),
-                                        _payload(pack(msg)) {};
-        template<ProtoMessage T>
-        explicit Message(Id id, const T msg) : _id(id),
-                                               _payload(pack(msg)) {};
+        explicit Message(const T msg) : _payload(pack(msg)) {};
         Message(const Message& rhs) = default;
         Message(Message&& rhs)      = default;
 
@@ -42,10 +34,6 @@ namespace assfire::messenger {
 
         void set_payload(Payload payload) {
             _payload = std::move(payload);
-        }
-
-        void set_id(Id id) {
-            _id = id;
         }
 
         std::optional<std::string> header(const Header::Id& id) const {
@@ -65,12 +53,16 @@ namespace assfire::messenger {
             return _payload;
         }
 
-        Id id() const {
-            return _id;
+        std::string headers_to_string() const {
+            std::vector<std::string> headers;
+            headers.reserve(_headers.size());
+            for (const auto& h : _headers) {
+                headers.push_back(h.second.to_string());
+            }
+            return "{" + absl::StrJoin(headers, ",") + "}";
         }
 
       private:
-        Id _id;
         std::unordered_map<Header::Id, Header> _headers;
         Payload _payload;
     };
